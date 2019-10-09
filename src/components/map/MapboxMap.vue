@@ -14,6 +14,11 @@ import Mapbox from "mapbox-gl";
 // import withPrivateMethods from "./mixins/withPrivateMethods";
 // import withAsyncActions from "./mixins/withAsyncActions";
 
+import Debugger from '../debugger/debugger'
+
+const debug = new Debugger("map");
+
+
 const props = {
 	minZoom: {
     type: Number,
@@ -26,6 +31,7 @@ const props = {
 	mapStyle: {
 		type: [String, Object],
 		default: "https://vectortiles.geo.admin.ch/gl-styles/ch.swisstopo.leichte-basiskarte.vt/v006/style.json"
+    // default: "https://ltboc.infra.bgdi.ch/static/stopo_sample_style.json"
 	}
 }
 
@@ -91,14 +97,45 @@ export default {
         const map = new this.mapbox.Map({
           ...this._props,
           container: this.$refs.container,
-          style: this.mapStyle
+          style: this.mapStyle,
+          transformRequest: (url, resourceType)=> {
+            console.log(url);
+            if(url.startsWith('https://ltboc.infra')) {
+              console.log('adding referer header');
+              return {
+                url: url,
+                headers: { 'Referer': 'ltboc.infra.bgdi.ch' }
+              }
+            }
+          }
         });
-        console.log("map", map);
+        debug.log(map);
 
         // Fired immediately after all necessary resources have
         // been downloaded and the first visually complete rendering
         // of the map has occurred.
-        map.on("load", () => resolve(map));
+        map.on("load", function (){
+          map.addLayer({
+            'id': 'hikingtrails',
+            'type': 'line',
+            "source": {
+              type: 'vector',
+              url: 'https://ltboc.infra.bgdi.ch/tileserver/stopo_sample.json'
+              // url: 'https://ltboc.infra.bgdi.ch/static/stopo_sample_style.json'
+            },
+            'source-layer': 'hikingtrails',
+            // "layout": {
+            //   "line-join": "round",
+            //   "line-cap": "round"
+            // },
+            // "paint": {
+            //   "line-color": "#ff69b4",
+            //   "line-width": 1
+            // }
+          });
+          resolve(map);
+        });
+        // 
       });
     },
 

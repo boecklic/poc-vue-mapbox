@@ -12,16 +12,20 @@
 <script>
 import HelloWorld from './components/HelloWorld.vue'
 import MapboxMap from './components/map/MapboxMap.vue'
+import Debugger from './components/debugger/debugger'
+
+const debug = new Debugger();
 
 export default {
-  name: 'app',
+  name: 'App',
   components: {
     // HelloWorld,
     MapboxMap
   },
   methods: {
     onMapLoaded(event) {
-      console.log("map loaded");
+      // console.log("map loaded");
+      debug.log("bla");
       this.map = event.map;
     }
   }
